@@ -1,0 +1,4 @@
+{
+  "/auth": { "target": "http://localhost:8009", "secure": false, "changeOrigin": true },
+  "/api":  { "target": "http://localhost:8009", "secure": false, "changeOrigin": true }
+}
