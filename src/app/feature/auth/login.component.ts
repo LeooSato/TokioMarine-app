@@ -55,7 +55,7 @@ export class LoginComponent {
 
   form = this.fb.group({
     username: ['', Validators.required],
-    password: ['', Validators.required]
+    password: ['', Validators.required],
   });
 
   async submit(){
@@ -65,5 +65,8 @@ export class LoginComponent {
     try { await this.auth.handleLogin(this.form.value as any); }
     catch(e:any){ this.error = e?.error?.message ?? 'Falha no login'; }
     finally { this.loading = false; }
+
+
+
   }
 }

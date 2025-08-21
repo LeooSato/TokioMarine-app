@@ -6,3 +6,5 @@ export type AuthResponse  = { token: string; tokenType: string; accountNumber?: 
 
 export type TransferRequest  = { accountFrom: string; accountTo: string; amount: number; transferDate: string; };
 export type TransferResponse = { id: number; accountFrom: string; accountTo: string; amount: number; fee: number; scheduleDate: string; transferDate: string; };
+
+export type Contact = { fullName: string; accountNumber: string };

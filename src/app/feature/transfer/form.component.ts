@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { Router, RouterLink } from '@angular/router';
 import { TransferService } from '../../core/transfer.service';
 import { AuthService } from '../../core/auth.service';
+import { UserService } from '../../core/user.service';
+import { Contact } from '../../core/model';
 
 @Component({
   standalone: true,
@@ -19,30 +21,29 @@ import { AuthService } from '../../core/auth.service';
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Account From</label>
-          <input class="form-control"
-                 formControlName="accountFrom"
-                 [readonly]="true">
+          <label class="form-label">Minha conta (From)</label>
+          <input class="form-control" formControlName="accountFrom" readonly>
           <div class="invalid-feedback d-block" *ngIf="submitted && form.controls.accountFrom.invalid">
-            Número inválido (10 dígitos).
+            Minha conta inválida.
           </div>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Account To</label>
-          <input class="form-control"
-                 formControlName="accountTo"
-                 placeholder="10 dígitos">
+          <label class="form-label">Destinatário (Nome)</label>
+          <select class="form-select" formControlName="accountTo">
+            <option value="" disabled selected>Selecione um destinatário</option>
+            <option *ngFor="let c of contacts" [value]="c.accountNumber">{{ c.fullName }}</option>
+          </select>
           <div class="invalid-feedback d-block" *ngIf="submitted && form.controls.accountTo.invalid">
-            Número inválido (10 dígitos).
+            Escolha um destinatário.
           </div>
           <div class="invalid-feedback d-block" *ngIf="submitted && form.errors?.['sameAccount']">
-            Conta de origem e destino não podem ser iguais.
+            Não é permitido transferir para sua própria conta.
           </div>
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Amount</label>
+          <label class="form-label">Valor</label>
           <input class="form-control" type="number" step="0.01" formControlName="amount">
           <div class="invalid-feedback d-block" *ngIf="submitted && form.controls.amount.invalid">
             Informe um valor maior que 0.
@@ -50,10 +51,10 @@ import { AuthService } from '../../core/auth.service';
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Transfer Date</label>
+          <label class="form-label">Data da transferência</label>
           <input class="form-control" type="date" formControlName="transferDate" [attr.min]="today">
           <div class="invalid-feedback d-block" *ngIf="submitted && form.controls.transferDate.invalid">
-            Informe uma data válida (não passada).
+            Informe uma data válida (>= hoje).
           </div>
         </div>
       </div>
@@ -74,8 +75,10 @@ export class TransferFormComponent {
   private fb = inject(FormBuilder);
   private api = inject(TransferService);
   private auth = inject(AuthService);
+  private people = inject(UserService);
   private router = inject(Router);
 
+  contacts: Contact[] = [];
   today = new Date().toISOString().slice(0,10);
   loading = false;
   error = '';
@@ -90,9 +93,12 @@ export class TransferFormComponent {
 
   async ngOnInit() {
     const me = this.auth.meCache ?? await this.auth.refreshMe();
-    const myAcc = me?.accountNumber ?? '';
-    // mantém readonly (NÃO disabled) para o valor ir no payload
-    this.form.patchValue({ accountFrom: myAcc, transferDate: this.today });
+    this.form.patchValue({ accountFrom: me?.accountNumber ?? '', transferDate: this.today });
+
+    this.people.listContacts().subscribe({
+      next: list => this.contacts = list,
+      error: e => this.error = e?.error?.message ?? 'Falha ao carregar destinatários'
+    });
   }
 
   notSelfTransfer() {

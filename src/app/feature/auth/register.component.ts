@@ -17,6 +17,11 @@ import { Router } from '@angular/router';
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
             <div class="mb-3">
+              <label class="form-label">Nome completo</label>
+              <input class="form-control" formControlName="fullName">
+            </div>
+
+            <div class="mb-3">
               <label class="form-label">Username</label>
               <input class="form-control" formControlName="username">
             </div>
@@ -31,8 +36,16 @@ import { Router } from '@angular/router';
               <input type="password" class="form-control" formControlName="password">
             </div>
 
-            <button class="btn btn-success w-100" [disabled]="form.invalid || loading">
-              {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
+            <button type="submit"
+                    class="btn btn-success w-100"
+                    [disabled]="form.invalid || loading"
+                    [attr.aria-busy]="loading">
+              @if (loading) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Cadastrando...
+              } @else {
+                Cadastrar
+              }
             </button>
           </form>
 
@@ -54,8 +67,9 @@ export class RegisterComponent {
   error = '';
 
   form = this.fb.group({
+    fullName: ['', [Validators.required, Validators.minLength(3)]],
     username: ['', [Validators.required, Validators.minLength(3)]],
-    email: ['', [Validators.required, Validators.email]],
+    email:    ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
@@ -67,7 +81,6 @@ export class RegisterComponent {
     this.auth.register(this.form.value as any).subscribe({
       next: () => {
         this.loading = false;
-        // redireciona para login (sem exibir ID)
         this.router.navigate(['/login'], { queryParams: { registered: '1' } });
       },
       error: e => {
