@@ -99,6 +99,13 @@ export class TransferFormComponent {
       next: list => this.contacts = list,
       error: e => this.error = e?.error?.message ?? 'Falha ao carregar destinatários'
     });
+    
+    //prencher data de hoje automaticamente
+    const now = new Date();
+    const tzoffset = now.getTimezoneOffset() * 60000; // min -> ms
+    this.today = new Date(Date.now() - tzoffset).toISOString().slice(0, 10);
+
+    this.form.patchValue({ transferDate: this.today });
   }
 
   notSelfTransfer() {
